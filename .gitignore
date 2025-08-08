@@ -1,0 +1,130 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build results
+bin/
+obj/
+
+# Rider
+.idea/
+
+# Logs
+*.log
+
+# Visual Studio Code
+.vscode/
+
+# NuGet Packages
+*.nupkg
+packages/
+.nuget/
+
+# Resharper
+_ReSharper*/
+*.DotSettings.user
+
+# Others
+*.pdb
+*.cache
+*.ilk
+*.ipch
+*.tlog
+*.idb
+*.iobj
+*.obj
+*.pch
+*.vspscc
+*.vssscc
+
+# DotCover
+*.dotCover
+
+# TeamCity
+_teamcity/
+
+# NUnit
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+
+# Build Reports
+*.BuildReport.xml
+
+# Backup & report files from converting an old project file
+*.Backup*
+*.Report.xml
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used by Windows
+$RECYCLE.BIN/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+
+# TFS
+$tf/
+
+# JetBrains Rider
+.idea/
+
+# DotCover
+*.dotCover
+
+# VS Code workspace files
+*.code-workspace
+
+# Others to ignore
+*.cache
+*.dbmdl
+*.bak
+*.log
+*.vsix
+
+# IIS Express
+IISExpress/
+
+# Publish Web Output
+*.Publish.xml
+
+# Publish profiles
+Properties/PublishProfiles/
+
+# SQLite files
+*.sqlite
+*.sqlite3
+
+# User-specific files (VS)
+*.userprefs
+
+# Windows thumbnail cache files
+Thumbs.db
+Desktop.ini
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Visual Studio temporary files
+~$*
+
