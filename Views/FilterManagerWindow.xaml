@@ -1,0 +1,34 @@
+﻿<Window x:Class="DevToolVault.Views.FilterManagerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Gerenciar Filtros" Height="500" Width="700">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Título -->
+        <TextBlock Grid.Row="0" Text="Perfis de Filtro" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+
+        <!-- Lista de perfis -->
+        <ListView Grid.Row="1" x:Name="lstProfiles" SelectionMode="Single">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Nome" Width="150" DisplayMemberBinding="{Binding Name}"/>
+                    <GridViewColumn Header="Descrição" Width="400" DisplayMemberBinding="{Binding Description}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <!-- Botões -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button x:Name="btnNew" Content="Novo" Width="80" Margin="5,0" Click="BtnNew_Click"/>
+            <Button x:Name="btnEdit" Content="Editar" Width="80" Margin="5,0" Click="BtnEdit_Click"/>
+            <Button x:Name="btnDelete" Content="Excluir" Width="80" Margin="5,0" Click="BtnDelete_Click"/>
+            <Button x:Name="btnSetActive" Content="Definir como Ativo" Width="120" Margin="5,0" Click="BtnSetActive_Click"/>
+            <Button x:Name="btnClose" Content="Fechar" Width="80" Margin="5,0" Click="BtnClose_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

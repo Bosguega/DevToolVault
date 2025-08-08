@@ -26,6 +26,8 @@
                       Checked="chkIgnoreEmptyFolders_Checked" Unchecked="chkIgnoreEmptyFolders_Unchecked"/>
             <CheckBox x:Name="chkShowSystemFiles" Content="Mostrar Arquivos de Sistema" VerticalAlignment="Center" Margin="16,0,0,0"
                       Checked="chkShowSystemFiles_Checked" Unchecked="chkShowSystemFiles_Unchecked"/>
+            <CheckBox x:Name="chkShowOnlyCodeFiles" Content="Mostrar Apenas Arquivos de Código" VerticalAlignment="Center" Margin="16,0,0,0"
+                      Checked="chkShowOnlyCodeFiles_Checked" Unchecked="chkShowOnlyCodeFiles_Unchecked"/>
             <Button x:Name="btnGenerate" Content="Gerar Estrutura" Width="120" Margin="16,0,0,0" Click="BtnGenerate_Click"/>
         </StackPanel>
 

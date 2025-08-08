@@ -3,39 +3,42 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using DevToolVault.Models;
+using DevToolVault.Filters;
 
 namespace DevToolVault.Views
 {
     public partial class EstruturaWindow : Window
     {
-        private readonly string[] defaultIgnorePatterns = new string[]
-        {
-            ".git", ".svn", ".hg", ".vs", "bin", "obj",
-            "node_modules", "Debug", "Release", "packages",
-            "Thumbs.db", "desktop.ini", "$RECYCLE.BIN",
-            "System Volume Information",
-            "build", ".gradle", ".idea", "gradle", "captures",
-            "local.properties", "*.iml", ".cxx", "lint",
-            "dist", "out", "generated", ".externalNativeBuild"
-        };
-
         private bool isProcessing = false;
-        private readonly TreeGenerator _treeGenerator;
+        private readonly FileFilterManager _filterManager;
+        private TreeGenerator _treeGenerator;
         private readonly FileStatistics _statistics;
 
-        public EstruturaWindow()
+        public EstruturaWindow(FileFilterManager filterManager = null)
         {
             InitializeComponent();
 
-            // Inicializa as dependências
-            var options = new TreeOptions
-            {
-                IgnorePatterns = defaultIgnorePatterns
-            };
+            // Inicializa o gerenciador de filtros
+            _filterManager = filterManager ?? new FileFilterManager();
+
+            // Inicializa as dependências com o perfil ativo
+            var activeProfile = _filterManager.GetActiveProfile();
+            var options = TreeOptions.FromFilterProfile(activeProfile);
             var fileFilter = new FileFilter(options);
             _statistics = new FileStatistics();
             _treeGenerator = new TreeGenerator(fileFilter, _statistics);
+
+            // Configura a UI com base no perfil ativo
+            SetupUIFromProfile(activeProfile);
+        }
+
+        private void SetupUIFromProfile(FilterProfile profile)
+        {
+            chkIgnoreEmptyFolders.IsChecked = profile.IgnoreEmptyFolders;
+            chkShowSystemFiles.IsChecked = profile.ShowSystemFiles;
+            chkShowOnlyCodeFiles.IsChecked = profile.ShowOnlyCodeFiles;
         }
 
         private void BtnBrowse_Click(object sender, RoutedEventArgs e)
@@ -58,11 +61,8 @@ namespace DevToolVault.Views
             if (isProcessing) return;
             isProcessing = true;
 
-            // Atualizações iniciais na UI thread
             txtStructure.Text = "Gerando estrutura...";
             SetControlsEnabled(false);
-
-            // Resetar estatísticas
             _statistics.Reset();
 
             string caminhoSelecionado = txtFolderPath.Text;
@@ -76,25 +76,24 @@ namespace DevToolVault.Views
 
             try
             {
-                // Prepara as opções com base nos controles da UI
-                var options = new TreeOptions
-                {
-                    IgnoreEmptyFolders = chkIgnoreEmptyFolders.IsChecked == true,
-                    ShowFileSize = false, // Pode adicionar um checkbox para isso
-                    ShowSystemFiles = chkShowSystemFiles?.IsChecked == true, // Operador seguro para nulo
-                    IgnorePatterns = defaultIgnorePatterns
-                };
+                // Atualiza o perfil ativo com base nas opções da UI
+                var activeProfile = _filterManager.GetActiveProfile();
+                activeProfile.IgnoreEmptyFolders = chkIgnoreEmptyFolders.IsChecked == true;
+                activeProfile.ShowSystemFiles = chkShowSystemFiles.IsChecked == true;
+                activeProfile.ShowOnlyCodeFiles = chkShowOnlyCodeFiles.IsChecked == true;
 
-                // Executa a tarefa em segundo plano
+                var options = TreeOptions.FromFilterProfile(activeProfile);
+
+                // Atualiza o filtro com as novas opções
+                var fileFilter = new FileFilter(options);
+                _treeGenerator = new TreeGenerator(fileFilter, _statistics);
+
                 string result = await Task.Run(() =>
                 {
                     return _treeGenerator.GenerateTree(caminhoSelecionado, options);
                 });
 
-                // Atualiza a UI após o await (volta para a thread principal)
                 txtStructure.Text = result;
-                // Se você tiver um controle para estatísticas, atualize aqui
-                // Ex: txtStats.Text = _statistics.ToString();
             }
             catch (Exception ex)
             {
@@ -113,8 +112,10 @@ namespace DevToolVault.Views
             btnGenerate.IsEnabled = enabled;
             btnBrowse.IsEnabled = enabled;
             chkIgnoreEmptyFolders.IsEnabled = enabled;
-            if (chkShowSystemFiles != null) // Verifica se o controle existe
+            if (chkShowSystemFiles != null)
                 chkShowSystemFiles.IsEnabled = enabled;
+            if (chkShowOnlyCodeFiles != null)
+                chkShowOnlyCodeFiles.IsEnabled = enabled;
             btnCopy.IsEnabled = enabled;
             btnSave.IsEnabled = enabled;
         }
@@ -176,6 +177,18 @@ namespace DevToolVault.Views
         }
 
         private void chkShowSystemFiles_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(txtFolderPath.Text))
+                _ = GerarEstruturaAsync();
+        }
+
+        private void chkShowOnlyCodeFiles_Checked(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(txtFolderPath.Text))
+                _ = GerarEstruturaAsync();
+        }
+
+        private void chkShowOnlyCodeFiles_Unchecked(object sender, RoutedEventArgs e)
         {
             if (!string.IsNullOrWhiteSpace(txtFolderPath.Text))
                 _ = GerarEstruturaAsync();

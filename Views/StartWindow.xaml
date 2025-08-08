@@ -4,28 +4,81 @@
         Title="DevToolVault" Height="650" Width="900" 
         WindowStartupLocation="CenterScreen"
         Background="#FFEEEEEE">
-
     <DockPanel>
-
         <!-- Menu superior -->
-        <Menu DockPanel.Dock="Top" Background="#FF2D2D30" Foreground="White" FontWeight="Bold">
+        <Menu DockPanel.Dock="Top" Background="#FF2D2D30" Foreground="White" FontWeight="Bold" FontSize="14">
             <MenuItem Header="_Arquivo">
                 <MenuItem Header="Visualizar Estrutura" Click="MenuVisualizarEstrutura_Click" />
                 <MenuItem Header="Exportar Código" Click="MenuExportarCodigo_Click" />
                 <Separator/>
                 <MenuItem Header="Sair" Click="MenuSair_Click" />
             </MenuItem>
+            <MenuItem Header="_Filtros">
+                <MenuItem Header="Gerenciar Filtros" Click="MenuGerenciarFiltros_Click" />
+                <MenuItem Header="Filtro Atual: Padrão" Name="menuFiltroAtual" FontWeight="Normal" Foreground="#FFCCCCCC" />
+                <Separator/>
+                <MenuItem Header="Recarregar Filtros" Click="MenuRecarregarFiltros_Click" />
+            </MenuItem>
+            <MenuItem Header="_Ajuda">
+                <MenuItem Header="Sobre" Click="MenuSobre_Click" />
+            </MenuItem>
         </Menu>
 
         <!-- Conteúdo principal - fundo cinza claro -->
         <Border Background="#FFD3D3D3" Margin="10" CornerRadius="5" >
-            <!-- Pode colocar aqui uma imagem, logo, instruções, etc -->
             <Grid>
-                <TextBlock Text="Bem-vindo ao DevToolVault" FontSize="24" FontWeight="Bold"
-                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                           Foreground="#FF2D2D30"/>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Título e descrição -->
+                <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,30">
+                    <TextBlock Text="DevToolVault" FontSize="36" FontWeight="Bold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Foreground="#FF2D2D30"/>
+                    <TextBlock Text="Ferramentas de desenvolvimento em um só lugar" FontSize="16"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Foreground="#FF555555" Margin="0,5"/>
+                </StackPanel>
+
+                <!-- Cards de funcionalidades -->
+                <WrapPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <!-- Card 1: Estrutura de Pastas -->
+                    <Border Background="White" CornerRadius="8" Margin="15" Padding="20" Width="250" Height="180"
+                            MouseLeftButtonDown="BorderEstrutura_MouseLeftButtonDown">
+                        <Border.Effect>
+                            <DropShadowEffect Color="Gray" Direction="315" ShadowDepth="5" BlurRadius="10" Opacity="0.3"/>
+                        </Border.Effect>
+                        <StackPanel>
+                            <TextBlock Text="Estrutura de Pastas" FontSize="20" FontWeight="Bold" 
+                                       Foreground="#FF2D2D30" Margin="0,0,0,10"/>
+                            <TextBlock Text="Gere uma representação textual da estrutura de diretórios do seu projeto." 
+                                       FontSize="14" Foreground="#FF555555" TextWrapping="Wrap"/>
+                            <Button Content="Abrir" Margin="0,15,0,0" HorizontalAlignment="Left" 
+                                    Background="#FF2D2D30" Foreground="White" FontWeight="Bold"
+                                    Padding="10,5" Click="BtnEstrutura_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Card 2: Exportar Código -->
+                    <Border Background="White" CornerRadius="8" Margin="15" Padding="20" Width="250" Height="180"
+                            MouseLeftButtonDown="BorderExportar_MouseLeftButtonDown">
+                        <Border.Effect>
+                            <DropShadowEffect Color="Gray" Direction="315" ShadowDepth="5" BlurRadius="10" Opacity="0.3"/>
+                        </Border.Effect>
+                        <StackPanel>
+                            <TextBlock Text="Exportar Código" FontSize="20" FontWeight="Bold" 
+                                       Foreground="#FF2D2D30" Margin="0,0,0,10"/>
+                            <TextBlock Text="Exporte todos os arquivos de código do seu projeto para arquivos .txt." 
+                                       FontSize="14" Foreground="#FF555555" TextWrapping="Wrap"/>
+                            <Button Content="Abrir" Margin="0,15,0,0" HorizontalAlignment="Left" 
+                                    Background="#FF2D2D30" Foreground="White" FontWeight="Bold"
+                                    Padding="10,5" Click="BtnExportar_Click"/>
+                        </StackPanel>
+                    </Border>
+                </WrapPanel>
             </Grid>
         </Border>
-
     </DockPanel>
 </Window>
