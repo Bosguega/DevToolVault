@@ -1,6 +1,4 @@
 ﻿using System.Windows;
-using System.Windows.Controls;
-using DevToolVault.Views;
 
 namespace DevToolVault.Views
 {
@@ -9,29 +7,25 @@ namespace DevToolVault.Views
         public StartWindow()
         {
             InitializeComponent();
-
-            // Carregar a página inicial (ex: Estrutura)
-            MainFrame.Navigate(new EstruturaPage());
         }
 
-        private void MenuItem_Estrutura_Click(object sender, RoutedEventArgs e)
+        private void MenuVisualizarEstrutura_Click(object sender, RoutedEventArgs e)
         {
-            MainFrame.Navigate(new EstruturaPage());
+            var estruturaWindow = new EstruturaWindow();
+            estruturaWindow.Owner = this;  // Define StartWindow como dona
+            estruturaWindow.Show();
         }
 
-        private void MenuItem_ExportarCodigo_Click(object sender, RoutedEventArgs e)
+        private void MenuExportarCodigo_Click(object sender, RoutedEventArgs e)
         {
-            MainFrame.Navigate(new ExportarCodigoPage());
+            var exportarWindow = new ExportarCodigoWindow();
+            exportarWindow.Owner = this;
+            exportarWindow.Show();
         }
 
-        private void MenuItem_Sair_Click(object sender, RoutedEventArgs e)
+        private void MenuSair_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
-        }
-
-        private void MenuItem_Sobre_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("DevToolVault - Coleção de utilitários para desenvolvedores.\n\nVersão 1.0", "Sobre");
         }
     }
 }
