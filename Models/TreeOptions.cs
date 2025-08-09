@@ -1,4 +1,5 @@
-﻿using DevToolVault.Filters;
+﻿using System.Linq;
+using DevToolVault.Filters;
 
 namespace DevToolVault.Models
 {

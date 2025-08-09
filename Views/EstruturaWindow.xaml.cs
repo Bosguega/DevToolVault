@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,12 +22,10 @@ namespace DevToolVault.Views
         {
             InitializeComponent();
 
-            // Inicializa o gerenciador de filtros
             _filterManager = filterManager ?? new FileFilterManager();
 
-            // Se não há perfil ativo ou é o perfil genérico, pede para selecionar
             var activeProfile = _filterManager.GetActiveProfile();
-            if (activeProfile == null || activeProfile.Name == "Default")
+            if (activeProfile == null)
             {
                 var selectorWindow = new ProjectTypeSelectorWindow(_filterManager);
                 selectorWindow.Owner = this;
@@ -38,27 +37,23 @@ namespace DevToolVault.Views
                 }
                 else
                 {
-                    // Se o usuário cancelou, usa o perfil padrão
                     activeProfile = _filterManager.GetProfiles().FirstOrDefault(p => p.Name == "Flutter") ??
                                    _filterManager.GetProfiles().FirstOrDefault();
                     _filterManager.SetActiveProfile(activeProfile);
                 }
             }
 
-            // Inicializa as dependências com o perfil ativo
             var options = TreeOptions.FromFilterProfile(activeProfile);
             var fileFilter = new FileFilter(options);
             _statistics = new FileStatistics();
             _treeGenerator = new TreeGenerator(fileFilter, _statistics);
 
-            // Configura a UI com base no perfil ativo
             SetupUIFromProfile(activeProfile);
             txtCurrentProfile.Text = $"Perfil atual: {activeProfile.Name}";
         }
 
         private void SetupUIFromProfile(FilterProfile profile)
         {
-            // Como agora estamos usando perfis específicos, não mostramos as opções individuais
             txtCurrentProfile.Text = $"Perfil atual: {profile.Name}";
         }
 
@@ -76,7 +71,6 @@ namespace DevToolVault.Views
                     SetupUIFromProfile(selectedProfile);
                     txtCurrentProfile.Text = $"Perfil atual: {selectedProfile.Name}";
 
-                    // Se já tiver um caminho selecionado, gera a estrutura automaticamente
                     if (!string.IsNullOrWhiteSpace(txtFolderPath.Text))
                     {
                         _ = GerarEstruturaAsync();
@@ -120,15 +114,9 @@ namespace DevToolVault.Views
 
             try
             {
-                // Obtém o perfil ativo
                 var activeProfile = _filterManager.GetActiveProfile();
-
-                // Salva o perfil atualizado
-                _filterManager.SaveProfile(activeProfile);
-
                 var options = TreeOptions.FromFilterProfile(activeProfile);
 
-                // Atualiza o filtro com as novas opções
                 var fileFilter = new FileFilter(options);
                 _treeGenerator = new TreeGenerator(fileFilter, _statistics);
 
@@ -205,7 +193,6 @@ namespace DevToolVault.Views
                 return;
             }
 
-            // Cria uma janela para mostrar a saída de depuração
             var debugWindow = new Window
             {
                 Title = "Saída de Depuração",
@@ -225,20 +212,16 @@ namespace DevToolVault.Views
 
             debugWindow.Content = textBox;
 
-            // Redireciona a saída do console para o TextBox
             var writer = new TextBoxStreamWriter(textBox);
             Console.SetOut(writer);
 
-            // Obtém o perfil ativo
             var activeProfile = _filterManager.GetActiveProfile();
             var options = TreeOptions.FromFilterProfile(activeProfile);
             var fileFilter = new FileFilter(options);
 
-            // Testa o filtro no diretório raiz
             Console.WriteLine($"Testando filtro no diretório: {txtFolderPath.Text}");
             fileFilter.ShouldIgnoreDebug(txtFolderPath.Text, true);
 
-            // Testa o filtro em cada subdiretório
             var rootDir = new DirectoryInfo(txtFolderPath.Text);
             foreach (var dir in rootDir.GetDirectories())
             {

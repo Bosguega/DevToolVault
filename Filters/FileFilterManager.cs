@@ -32,65 +32,44 @@ namespace DevToolVault.Filters
 
         private void LoadDefaultFilters()
         {
-            // Perfil para projetos Flutter
             var flutterProfile = new FilterProfile
             {
                 Name = "Flutter",
                 Description = "Filtro para projetos Flutter",
                 IgnorePatterns = new List<string>
-    {
-        // Diretórios de plataforma (geralmente não editados diretamente)
-        "android", "ios", "linux", "macos", "windows", "web",
-        
-        // Diretórios gerados
-        "build", "dart_tool", ".dart_tool", ".pub", ".flutter-plugins",
-        
-        // Diretórios de IDE
-        ".idea", ".vscode", ".vs",
-        
-        // Arquivos gerados
-        "*.g.dart", "*.r.dart", "*.gr.dart", "*.freezed.dart",
-        "*.inject.dart", "*.mocks.dart",
-        
-        // Outros arquivos não editáveis
-        "*.apk", "*.aab", "*.ipa", "*.app", "*.exe", "*.dll",
-        "*.so", "*.dylib", "*.jar", "*.aar", "*.framework",
-        
-        // Arquivos de sistema
-        ".DS_Store", "Thumbs.db", "desktop.ini",
-        
-        // Logs e cache
-        "*.log", "*.cache", "*.tmp"
-    },
+                {
+                    "android", "ios", "linux", "macos", "windows", "web",
+                    "build", "dart_tool", ".dart_tool", ".pub", ".flutter-plugins",
+                    ".idea", ".vscode", ".vs",
+                    "*.g.dart", "*.r.dart", "*.gr.dart", "*.freezed.dart",
+                    "*.inject.dart", "*.mocks.dart",
+                    "*.apk", "*.aab", "*.ipa", "*.app", "*.exe", "*.dll",
+                    "*.so", "*.dylib", "*.jar", "*.aar", "*.framework",
+                    ".DS_Store", "Thumbs.db", "desktop.ini",
+                    "*.log", "*.cache", "*.tmp"
+                },
                 CodeExtensions = new List<string>
-    {
-        ".dart", ".yaml", ".yml", ".json", ".xml", ".html", ".css", ".js", ".ts"
-    },
+                {
+                    ".dart", ".yaml", ".yml", ".json", ".xml", ".html", ".css", ".js", ".ts"
+                },
                 IgnoreEmptyFolders = true,
                 ShowFileSize = false,
                 ShowSystemFiles = false,
-                ShowOnlyCodeFiles = true
+                ShowOnlyCodeFiles = true,
+                IsBuiltIn = true
             };
 
-            // Perfil para projetos .NET
             var dotnetProfile = new FilterProfile
             {
                 Name = ".NET",
                 Description = "Filtro para projetos .NET",
                 IgnorePatterns = new List<string>
                 {
-                    // Diretórios gerados
                     "bin", "obj", "Debug", "Release", "x64", "x86", "AnyCPU",
                     ".vs", "vs", ".vscode", "node_modules",
-                    
-                    // Arquivos gerados
                     "*.exe", "*.dll", "*.pdb", "*.config", "*.exe.config",
                     "*.manifest", "*.application", "*.deploy",
-                    
-                    // Arquivos de sistema
                     ".DS_Store", "Thumbs.db", "desktop.ini",
-                    
-                    // Logs e cache
                     "*.log", "*.cache", "*.tmp"
                 },
                 CodeExtensions = new List<string>
@@ -100,27 +79,20 @@ namespace DevToolVault.Filters
                 IgnoreEmptyFolders = true,
                 ShowFileSize = false,
                 ShowSystemFiles = false,
-                ShowOnlyCodeFiles = true
+                ShowOnlyCodeFiles = true,
+                IsBuiltIn = true
             };
 
-            // Perfil para projetos Node.js
             var nodejsProfile = new FilterProfile
             {
                 Name = "Node.js",
                 Description = "Filtro para projetos Node.js",
                 IgnorePatterns = new List<string>
                 {
-                    // Diretórios gerados
                     "node_modules", ".nyc_output", "coverage", ".cache",
                     "dist", "build", "out",
-                    
-                    // Arquivos gerados
-                    "*.js", "*.map", "*.d.ts",
-                    
-                    // Arquivos de sistema
+                    "*.map", // mantenha js conforme sua necessidade
                     ".DS_Store", "Thumbs.db", "desktop.ini",
-                    
-                    // Logs e cache
                     "*.log", "*.cache", "*.tmp"
                 },
                 CodeExtensions = new List<string>
@@ -130,28 +102,21 @@ namespace DevToolVault.Filters
                 IgnoreEmptyFolders = true,
                 ShowFileSize = false,
                 ShowSystemFiles = false,
-                ShowOnlyCodeFiles = true
+                ShowOnlyCodeFiles = true,
+                IsBuiltIn = true
             };
 
-            // Perfil para projetos Android (Java/Kotlin)
             var androidProfile = new FilterProfile
             {
                 Name = "Android",
                 Description = "Filtro para projetos Android",
                 IgnorePatterns = new List<string>
                 {
-                    // Diretórios gerados
                     "build", ".gradle", ".idea", "captures", ".cxx",
                     "app/build", "app/build/intermediates", "app/build/generated",
-                    
-                    // Arquivos gerados
                     "*.apk", "*.aab", "*.jar", "*.aar", "*.dex",
                     "*.R.java", "*.BuildConfig.java",
-                    
-                    // Arquivos de sistema
                     ".DS_Store", "Thumbs.db", "desktop.ini",
-                    
-                    // Logs e cache
                     "*.log", "*.cache", "*.tmp"
                 },
                 CodeExtensions = new List<string>
@@ -161,28 +126,21 @@ namespace DevToolVault.Filters
                 IgnoreEmptyFolders = true,
                 ShowFileSize = false,
                 ShowSystemFiles = false,
-                ShowOnlyCodeFiles = true
+                ShowOnlyCodeFiles = true,
+                IsBuiltIn = true
             };
 
-            // Perfil para projetos Web (HTML/CSS/JS)
             var webProfile = new FilterProfile
             {
                 Name = "Web",
                 Description = "Filtro para projetos Web",
                 IgnorePatterns = new List<string>
                 {
-                    // Diretórios gerados
                     "dist", "build", "out", ".cache", ".tmp",
                     "node_modules", ".nyc_output", "coverage",
-                    
-                    // Arquivos gerados
                     "*.min.js", "*.min.css", "*.bundle.js", "*.bundle.css",
                     "*.map",
-                    
-                    // Arquivos de sistema
                     ".DS_Store", "Thumbs.db", "desktop.ini",
-                    
-                    // Logs e cache
                     "*.log", "*.cache", "*.tmp"
                 },
                 CodeExtensions = new List<string>
@@ -193,7 +151,33 @@ namespace DevToolVault.Filters
                 IgnoreEmptyFolders = true,
                 ShowFileSize = false,
                 ShowSystemFiles = false,
-                ShowOnlyCodeFiles = true
+                ShowOnlyCodeFiles = true,
+                IsBuiltIn = true
+            };
+
+            var wpfProfile = new FilterProfile
+            {
+                Name = "WPF",
+                Description = "Filtro para projetos WPF",
+                IgnorePatterns = new List<string>
+                {
+                    "bin", "obj", "Debug", "Release", "x64", "x86", "AnyCPU",
+                    ".vs", "vs", ".vscode",
+                    "*.exe", "*.dll", "*.pdb", "*.config", "*.exe.config",
+                    "*.manifest", "*.application", "*.deploy",
+                    "*.Designer.cs", "*.g.cs", "*.g.i.cs", "*.i.cs",
+                    ".DS_Store", "Thumbs.db", "desktop.ini",
+                    "*.log", "*.cache", "*.tmp"
+                },
+                CodeExtensions = new List<string>
+                {
+                    ".cs", ".xaml", ".xml", ".json", ".config", ".cshtml", ".razor"
+                },
+                IgnoreEmptyFolders = true,
+                ShowFileSize = false,
+                ShowSystemFiles = false,
+                ShowOnlyCodeFiles = true,
+                IsBuiltIn = true
             };
 
             _profiles.Add(flutterProfile);
@@ -201,11 +185,10 @@ namespace DevToolVault.Filters
             _profiles.Add(nodejsProfile);
             _profiles.Add(androidProfile);
             _profiles.Add(webProfile);
+            _profiles.Add(wpfProfile);
 
-            // Define o primeiro perfil como ativo por padrão
             _activeProfile = _profiles.FirstOrDefault();
 
-            // Tenta carregar perfis personalizados
             LoadCustomProfiles();
         }
 
@@ -222,6 +205,7 @@ namespace DevToolVault.Filters
                         var profile = JsonSerializer.Deserialize<FilterProfile>(json);
                         if (profile != null)
                         {
+                            profile.IsBuiltIn = false; // arquivos são personalizados
                             _profiles.Add(profile);
                         }
                     }
@@ -268,7 +252,6 @@ namespace DevToolVault.Filters
             var json = JsonSerializer.Serialize(profile, options);
             File.WriteAllText(filePath, json);
 
-            // Atualiza a lista se já existir
             var existing = _profiles.FirstOrDefault(p => p.Name == profile.Name);
             if (existing != null)
             {
@@ -280,6 +263,7 @@ namespace DevToolVault.Filters
         public void DeleteProfile(FilterProfile profile)
         {
             if (profile == null) throw new ArgumentNullException(nameof(profile));
+            if (profile.IsBuiltIn) return; // não excluir embutido
 
             var fileName = $"{profile.Name}.json";
             var filePath = Path.Combine(_filtersDirectory, fileName);
@@ -291,7 +275,6 @@ namespace DevToolVault.Filters
 
             _profiles.Remove(profile);
 
-            // Se deletou o perfil ativo, volta para o padrão
             if (_activeProfile == profile)
             {
                 _activeProfile = _profiles.FirstOrDefault();
@@ -309,7 +292,8 @@ namespace DevToolVault.Filters
                 IgnoreEmptyFolders = _activeProfile.IgnoreEmptyFolders,
                 ShowFileSize = _activeProfile.ShowFileSize,
                 ShowSystemFiles = _activeProfile.ShowSystemFiles,
-                ShowOnlyCodeFiles = _activeProfile.ShowOnlyCodeFiles
+                ShowOnlyCodeFiles = _activeProfile.ShowOnlyCodeFiles,
+                IsBuiltIn = false
             };
 
             return profile;

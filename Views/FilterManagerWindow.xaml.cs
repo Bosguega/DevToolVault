@@ -20,7 +20,6 @@ namespace DevToolVault.Views
         {
             lstProfiles.ItemsSource = _filterManager.GetProfiles();
 
-            // Seleciona o perfil ativo
             var activeProfile = _filterManager.GetActiveProfile();
             if (activeProfile != null)
             {
@@ -52,6 +51,12 @@ namespace DevToolVault.Views
         {
             if (lstProfiles.SelectedItem is FilterProfile selectedProfile)
             {
+                if (selectedProfile.IsBuiltIn)
+                {
+                    MessageBox.Show("Perfis embutidos não podem ser editados diretamente. Crie um novo perfil a partir do ativo.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
                 var dialog = new FilterEditWindow(selectedProfile);
                 dialog.Owner = this;
 
@@ -73,9 +78,9 @@ namespace DevToolVault.Views
         {
             if (lstProfiles.SelectedItem is FilterProfile selectedProfile)
             {
-                if (selectedProfile.Name == "Default")
+                if (selectedProfile.IsBuiltIn)
                 {
-                    MessageBox.Show("Não é possível excluir o perfil padrão.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("Não é possível excluir perfis embutidos.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 

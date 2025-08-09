@@ -12,5 +12,8 @@ namespace DevToolVault.Filters
         public bool ShowFileSize { get; set; } = false;
         public bool ShowSystemFiles { get; set; } = false;
         public bool ShowOnlyCodeFiles { get; set; } = false;
+
+        // Indica se é um perfil embutido (não deve ser excluído)
+        public bool IsBuiltIn { get; set; } = false;
     }
 }

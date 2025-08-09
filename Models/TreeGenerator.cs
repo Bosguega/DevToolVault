@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace DevToolVault.Models
@@ -27,7 +29,6 @@ namespace DevToolVault.Models
 
         private void AppendDirectoryContents(DirectoryInfo dir, StringBuilder sb, string indent, TreeOptions options)
         {
-            // Verifica se o diretório deve ser ignorado
             if (_fileFilter.ShouldIgnoreDebug(dir.FullName, true))
                 return;
 
@@ -47,7 +48,6 @@ namespace DevToolVault.Models
                     return;
                 }
 
-                // Filtra os arquivos e diretórios usando o FileFilter
                 var visibleFiles = files.Where(f => !_fileFilter.ShouldIgnoreDebug(f.FullName, false)).ToArray();
                 var visibleSubDirs = subDirs.Where(d => !_fileFilter.ShouldIgnoreDebug(d.FullName, true)).ToArray();
 

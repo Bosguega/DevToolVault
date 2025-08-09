@@ -29,13 +29,16 @@ namespace DevToolVault.Controls
             if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
                 return;
 
+            var rootName = Path.GetFileName(path);
+            if (string.IsNullOrEmpty(rootName))
+                rootName = path.TrimEnd(Path.DirectorySeparatorChar);
+
             var rootItem = new FileSystemItem
             {
                 FullName = path,
-                Name = Path.GetFileName(path),
+                Name = rootName,
                 IsDirectory = true,
-                IsChecked = true,
-                IsThreeState = false
+                IsChecked = true
             };
 
             PopulateDirectory(rootItem, filterManager.GetActiveProfile());
@@ -48,11 +51,9 @@ namespace DevToolVault.Controls
             {
                 var directoryInfo = new DirectoryInfo(parentItem.FullName);
 
-                // Obtém as opções do perfil
                 var options = TreeOptions.FromFilterProfile(profile);
                 var fileFilter = new FileFilter(options);
 
-                // Processa subdiretórios
                 foreach (var dir in directoryInfo.GetDirectories())
                 {
                     if (!fileFilter.ShouldIgnore(dir.FullName, true))
@@ -63,7 +64,6 @@ namespace DevToolVault.Controls
                             Name = dir.Name,
                             IsDirectory = true,
                             IsChecked = true,
-                            IsThreeState = false,
                             Parent = parentItem
                         };
 
@@ -72,7 +72,6 @@ namespace DevToolVault.Controls
                     }
                 }
 
-                // Processa arquivos
                 foreach (var file in directoryInfo.GetFiles())
                 {
                     if (!fileFilter.ShouldIgnore(file.FullName, false))
@@ -83,7 +82,6 @@ namespace DevToolVault.Controls
                             Name = file.Name,
                             IsDirectory = false,
                             IsChecked = true,
-                            IsThreeState = false,
                             Parent = parentItem
                         };
 
@@ -113,13 +111,12 @@ namespace DevToolVault.Controls
         {
             if (item.IsChecked == true)
             {
-                if (!item.IsDirectory) // Só adiciona arquivos diretamente
+                if (!item.IsDirectory)
                 {
                     selectedItems.Add(item);
                 }
                 else
                 {
-                    // Para pastas, adiciona todos os arquivos selecionados dentro dela
                     foreach (var child in item.Children)
                     {
                         GetSelectedItemsRecursive(child, selectedItems);
@@ -128,7 +125,6 @@ namespace DevToolVault.Controls
             }
             else if (item.IsChecked == null) // Estado indeterminado
             {
-                // Adiciona apenas os itens filhos que estão selecionados
                 foreach (var child in item.Children)
                 {
                     GetSelectedItemsRecursive(child, selectedItems);
@@ -136,38 +132,26 @@ namespace DevToolVault.Controls
             }
         }
 
-        private void CheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            var checkBox = sender as CheckBox;
-            var item = checkBox.DataContext as FileSystemItem;
+        private void CheckBox_Checked(object sender, RoutedEventArgs e) => OnCheckBoxStateChanged(sender, true);
+        private void CheckBox_Unchecked(object sender, RoutedEventArgs e) => OnCheckBoxStateChanged(sender, false);
+        private void CheckBox_Indeterminate(object sender, RoutedEventArgs e) => OnCheckBoxStateChanged(sender, null);
 
-            if (item != null)
+        private void OnCheckBoxStateChanged(object sender, bool? state)
+        {
+            if (sender is CheckBox checkBox && checkBox.DataContext is FileSystemItem item)
             {
-                UpdateChildSelection(item, true);
+                UpdateChildSelection(item, state);
                 UpdateParentSelection(item);
             }
         }
 
-        private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
+        private void UpdateChildSelection(FileSystemItem item, bool? state)
         {
-            var checkBox = sender as CheckBox;
-            var item = checkBox.DataContext as FileSystemItem;
-
-            if (item != null)
-            {
-                UpdateChildSelection(item, false);
-                UpdateParentSelection(item);
-            }
-        }
-
-        private void UpdateChildSelection(FileSystemItem item, bool isChecked)
-        {
-            item.IsChecked = isChecked;
-            item.IsThreeState = false;
+            item.IsChecked = state;
 
             foreach (var child in item.Children)
             {
-                UpdateChildSelection(child, isChecked);
+                UpdateChildSelection(child, state);
             }
         }
 
@@ -176,23 +160,21 @@ namespace DevToolVault.Controls
             if (item.Parent == null) return;
 
             var parent = item.Parent;
-            var checkedChildren = parent.Children.Count(c => c.IsChecked == true);
-            var uncheckedChildren = parent.Children.Count(c => c.IsChecked == false);
+            int total = parent.Children.Count;
+            int checkedChildren = parent.Children.Count(c => c.IsChecked == true);
+            int uncheckedChildren = parent.Children.Count(c => c.IsChecked == false);
 
-            if (checkedChildren == parent.Children.Count)
+            if (checkedChildren == total)
             {
                 parent.IsChecked = true;
-                parent.IsThreeState = false;
             }
-            else if (uncheckedChildren == parent.Children.Count)
+            else if (uncheckedChildren == total)
             {
                 parent.IsChecked = false;
-                parent.IsThreeState = false;
             }
             else
             {
-                parent.IsChecked = false;
-                parent.IsThreeState = true;
+                parent.IsChecked = null;
             }
 
             UpdateParentSelection(parent);
@@ -222,12 +204,27 @@ namespace DevToolVault.Controls
 
         private void BtnExpandAll_Click(object sender, RoutedEventArgs e)
         {
-            ExpandAllItems(treeFiles.Items);
+            foreach (FileSystemItem item in treeFiles.Items)
+            {
+                SetExpandedRecursive(item, true);
+            }
         }
 
         private void BtnCollapseAll_Click(object sender, RoutedEventArgs e)
         {
-            CollapseAllItems(treeFiles.Items);
+            foreach (FileSystemItem item in treeFiles.Items)
+            {
+                SetExpandedRecursive(item, false);
+            }
+        }
+
+        private void SetExpandedRecursive(FileSystemItem item, bool expanded)
+        {
+            item.IsExpanded = expanded;
+            foreach (var child in item.Children)
+            {
+                SetExpandedRecursive(child, expanded);
+            }
         }
 
         private void BtnRefresh_Click(object sender, RoutedEventArgs e)
@@ -235,30 +232,6 @@ namespace DevToolVault.Controls
             if (!string.IsNullOrEmpty(RootPath) && FilterManager != null)
             {
                 LoadDirectory(RootPath, FilterManager);
-            }
-        }
-
-        private void ExpandAllItems(ItemCollection items)
-        {
-            foreach (var item in items)
-            {
-                if (item is TreeViewItem treeViewItem)
-                {
-                    treeViewItem.IsExpanded = true;
-                    ExpandAllItems(treeViewItem.Items);
-                }
-            }
-        }
-
-        private void CollapseAllItems(ItemCollection items)
-        {
-            foreach (var item in items)
-            {
-                if (item is TreeViewItem treeViewItem)
-                {
-                    treeViewItem.IsExpanded = false;
-                    CollapseAllItems(treeViewItem.Items);
-                }
             }
         }
     }

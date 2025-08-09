@@ -21,12 +21,12 @@
         </StackPanel>
 
         <!-- Linha 2: Opções e botão Gerar -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Top" Grid.ColumnSpan="2" >
-            <Button x:Name="btnSelectProjectType" Content="Selecionar Tipo de Projeto" Width="150" Margin="0,0,10,0" Click="BtnSelectProjectType_Click"/>
-            <TextBlock x:Name="txtCurrentProfile" Text="Perfil atual: Não selecionado" VerticalAlignment="Center" Margin="0,0,10,0"/>
-            <Button x:Name="btnGenerate" Content="Gerar Estrutura" Width="120" Click="BtnGenerate_Click"/>
-            <Button x:Name="btnDebug" Content="Depurar" Width="80" Margin="10,0,0,0" Click="BtnDebug_Click"/>
-        </StackPanel>
+<StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Top" Grid.ColumnSpan="2" >
+    <Button x:Name="btnSelectProjectType" Content="Selecionar Tipo de Projeto" Width="150" Margin="0,0,10,0" Click="BtnSelectProjectType_Click"/>
+    <TextBlock x:Name="txtCurrentProfile" Text="Perfil atual: Não selecionado" VerticalAlignment="Center" Margin="0,0,10,0"/>
+    <Button x:Name="btnGenerate" Content="Gerar Estrutura" Width="120" Click="BtnGenerate_Click"/>
+    <Button x:Name="btnDebug" Content="Depurar" Width="80" Margin="10,0,0,0" Click="BtnDebug_Click"/>
+</StackPanel>
 
         <!-- Linha 3: TextBox multiline para mostrar estrutura gerada -->
         <TextBox x:Name="txtStructure" Grid.Row="2" 

@@ -1,6 +1,6 @@
 {
     "name": "Default",
-    "description": "Filtro padr„o para projetos .NET",
+    "description": "Filtro padr√£o para projetos .NET",
     "ignorePatterns": [
         ".git",
         ".svn",
