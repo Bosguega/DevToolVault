@@ -32,41 +32,178 @@ namespace DevToolVault.Filters
 
         private void LoadDefaultFilters()
         {
-            // Carrega perfis padrão
-            var defaultProfile = new FilterProfile
+            // Perfil para projetos Flutter
+            var flutterProfile = new FilterProfile
             {
-                Name = "Default",
-                Description = "Filtro padrão para projetos .NET",
+                Name = "Flutter",
+                Description = "Filtro para projetos Flutter",
+                IgnorePatterns = new List<string>
+    {
+        // Diretórios de plataforma (geralmente não editados diretamente)
+        "android", "ios", "linux", "macos", "windows", "web",
+        
+        // Diretórios gerados
+        "build", "dart_tool", ".dart_tool", ".pub", ".flutter-plugins",
+        
+        // Diretórios de IDE
+        ".idea", ".vscode", ".vs",
+        
+        // Arquivos gerados
+        "*.g.dart", "*.r.dart", "*.gr.dart", "*.freezed.dart",
+        "*.inject.dart", "*.mocks.dart",
+        
+        // Outros arquivos não editáveis
+        "*.apk", "*.aab", "*.ipa", "*.app", "*.exe", "*.dll",
+        "*.so", "*.dylib", "*.jar", "*.aar", "*.framework",
+        
+        // Arquivos de sistema
+        ".DS_Store", "Thumbs.db", "desktop.ini",
+        
+        // Logs e cache
+        "*.log", "*.cache", "*.tmp"
+    },
+                CodeExtensions = new List<string>
+    {
+        ".dart", ".yaml", ".yml", ".json", ".xml", ".html", ".css", ".js", ".ts"
+    },
+                IgnoreEmptyFolders = true,
+                ShowFileSize = false,
+                ShowSystemFiles = false,
+                ShowOnlyCodeFiles = true
+            };
+
+            // Perfil para projetos .NET
+            var dotnetProfile = new FilterProfile
+            {
+                Name = ".NET",
+                Description = "Filtro para projetos .NET",
                 IgnorePatterns = new List<string>
                 {
-                    ".git", ".svn", ".hg", ".bzr", "_darcs",
+                    // Diretórios gerados
                     "bin", "obj", "Debug", "Release", "x64", "x86", "AnyCPU",
-                    "node_modules", "bower_components", "jspm_packages",
-                    ".nuget", "packages", ".vscode", ".idea", ".vs",
-                    "*.tmp", "*.temp", "*.log", "*.cache", "*.bak", "*.swp",
-                    "Thumbs.db", "desktop.ini", ".DS_Store", ".AppleDouble",
-                    ".LSOverride", "Icon\r", "$RECYCLE.BIN", "System Volume Information",
-                    "build", "dist", "out", "target", "coverage", ".gradle",
-                    ".gradletasknamecache", "gradlew", "gradlew.bat",
-                    ".mvn", "mvnw", "mvnw.cmd",
-                    ".idea", "*.iml", ".vscode", "*.sublime-project", "*.sublime-workspace",
-                    ".cxx", "captures", "local.properties", "*.apk", "*.aab",
-                    "*.dll", "*.exe", "*.so", "*.dylib", "*.pdb", "*.xml",
-                    "*.config", "*.settings", "*.user", "*.suo", "*.userosscache"
+                    ".vs", "vs", ".vscode", "node_modules",
+                    
+                    // Arquivos gerados
+                    "*.exe", "*.dll", "*.pdb", "*.config", "*.exe.config",
+                    "*.manifest", "*.application", "*.deploy",
+                    
+                    // Arquivos de sistema
+                    ".DS_Store", "Thumbs.db", "desktop.ini",
+                    
+                    // Logs e cache
+                    "*.log", "*.cache", "*.tmp"
                 },
                 CodeExtensions = new List<string>
                 {
-                    ".cs", ".vb", ".fs", ".cpp", ".c", ".h", ".hpp", ".java", ".py",
-                    ".js", ".ts", ".jsx", ".tsx", ".html", ".css", ".scss", ".sass",
-                    ".less", ".php", ".rb", ".go", ".rs", ".swift", ".kt", ".scala",
-                    ".clj", ".cljs", ".edn", ".r", ".m", ".sh", ".sql", ".xml", ".json",
-                    ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf", ".properties",
-                    ".md", ".txt", ".dockerfile", ".gitignore", ".gitattributes"
-                }
+                    ".cs", ".vb", ".fs", ".xaml", ".xml", ".json", ".config", ".cshtml", ".razor"
+                },
+                IgnoreEmptyFolders = true,
+                ShowFileSize = false,
+                ShowSystemFiles = false,
+                ShowOnlyCodeFiles = true
             };
 
-            _profiles.Add(defaultProfile);
-            _activeProfile = defaultProfile;
+            // Perfil para projetos Node.js
+            var nodejsProfile = new FilterProfile
+            {
+                Name = "Node.js",
+                Description = "Filtro para projetos Node.js",
+                IgnorePatterns = new List<string>
+                {
+                    // Diretórios gerados
+                    "node_modules", ".nyc_output", "coverage", ".cache",
+                    "dist", "build", "out",
+                    
+                    // Arquivos gerados
+                    "*.js", "*.map", "*.d.ts",
+                    
+                    // Arquivos de sistema
+                    ".DS_Store", "Thumbs.db", "desktop.ini",
+                    
+                    // Logs e cache
+                    "*.log", "*.cache", "*.tmp"
+                },
+                CodeExtensions = new List<string>
+                {
+                    ".ts", ".tsx", ".jsx", ".js", ".json", ".md", ".yml", ".yaml"
+                },
+                IgnoreEmptyFolders = true,
+                ShowFileSize = false,
+                ShowSystemFiles = false,
+                ShowOnlyCodeFiles = true
+            };
+
+            // Perfil para projetos Android (Java/Kotlin)
+            var androidProfile = new FilterProfile
+            {
+                Name = "Android",
+                Description = "Filtro para projetos Android",
+                IgnorePatterns = new List<string>
+                {
+                    // Diretórios gerados
+                    "build", ".gradle", ".idea", "captures", ".cxx",
+                    "app/build", "app/build/intermediates", "app/build/generated",
+                    
+                    // Arquivos gerados
+                    "*.apk", "*.aab", "*.jar", "*.aar", "*.dex",
+                    "*.R.java", "*.BuildConfig.java",
+                    
+                    // Arquivos de sistema
+                    ".DS_Store", "Thumbs.db", "desktop.ini",
+                    
+                    // Logs e cache
+                    "*.log", "*.cache", "*.tmp"
+                },
+                CodeExtensions = new List<string>
+                {
+                    ".java", ".kt", ".xml", ".gradle", ".properties", ".json"
+                },
+                IgnoreEmptyFolders = true,
+                ShowFileSize = false,
+                ShowSystemFiles = false,
+                ShowOnlyCodeFiles = true
+            };
+
+            // Perfil para projetos Web (HTML/CSS/JS)
+            var webProfile = new FilterProfile
+            {
+                Name = "Web",
+                Description = "Filtro para projetos Web",
+                IgnorePatterns = new List<string>
+                {
+                    // Diretórios gerados
+                    "dist", "build", "out", ".cache", ".tmp",
+                    "node_modules", ".nyc_output", "coverage",
+                    
+                    // Arquivos gerados
+                    "*.min.js", "*.min.css", "*.bundle.js", "*.bundle.css",
+                    "*.map",
+                    
+                    // Arquivos de sistema
+                    ".DS_Store", "Thumbs.db", "desktop.ini",
+                    
+                    // Logs e cache
+                    "*.log", "*.cache", "*.tmp"
+                },
+                CodeExtensions = new List<string>
+                {
+                    ".html", ".css", ".scss", ".sass", ".less", ".js", ".ts", ".jsx", ".tsx",
+                    ".json", ".md", ".yml", ".yaml"
+                },
+                IgnoreEmptyFolders = true,
+                ShowFileSize = false,
+                ShowSystemFiles = false,
+                ShowOnlyCodeFiles = true
+            };
+
+            _profiles.Add(flutterProfile);
+            _profiles.Add(dotnetProfile);
+            _profiles.Add(nodejsProfile);
+            _profiles.Add(androidProfile);
+            _profiles.Add(webProfile);
+
+            // Define o primeiro perfil como ativo por padrão
+            _activeProfile = _profiles.FirstOrDefault();
 
             // Tenta carregar perfis personalizados
             LoadCustomProfiles();
@@ -157,7 +294,7 @@ namespace DevToolVault.Filters
             // Se deletou o perfil ativo, volta para o padrão
             if (_activeProfile == profile)
             {
-                _activeProfile = _profiles.FirstOrDefault(p => p.Name == "Default");
+                _activeProfile = _profiles.FirstOrDefault();
             }
         }
 

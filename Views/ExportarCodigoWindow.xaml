@@ -1,51 +1,34 @@
 ﻿<Window x:Class="DevToolVault.Views.ExportarCodigoWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Exportar Código" Height="500" Width="700"
-        WindowStartupLocation="CenterOwner">
+        xmlns:controls="clr-namespace:DevToolVault.Controls"
+        Title="Exportar Código" Height="600" Width="900" MinWidth="700" MinHeight="500">
     <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="233*"/>
+            <ColumnDefinition Width="647*"/>
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Pasta do projeto -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,5">
-            <Label Content="Pasta do Projeto:" Width="120"/>
-            <TextBox x:Name="txtProjectPath" Width="400" Margin="5,0"/>
-            <Button x:Name="btnBrowseProject" Content="Buscar..." Width="80" Click="BtnBrowseProject_Click"/>
+        <!-- Linha 1: Caminho e botão Buscar -->
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.ColumnSpan="2">
+            <TextBox x:Name="txtFolderPath" Width="500" Height="25" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <Button x:Name="btnBrowse" Content="Buscar..." Width="80" Click="BtnBrowse_Click"/>
+            <Button x:Name="btnSelectProjectType" Content="Selecionar Tipo de Projeto" Width="150" Margin="20,0,10,0" Click="BtnSelectProjectType_Click"/>
+            <TextBlock x:Name="txtCurrentProfile" Text="Perfil atual: Não selecionado" VerticalAlignment="Center"/>
         </StackPanel>
 
-        <!-- Pasta de destino -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,5">
-            <Label Content="Pasta Destino:" Width="120"/>
-            <TextBox x:Name="txtOutputPath" Width="400" Margin="5,0"/>
-            <Button x:Name="btnBrowseOutput" Content="Buscar..." Width="80" Click="BtnBrowseOutput_Click"/>
-        </StackPanel>
+        <!-- Linha 2: TreeView de arquivos -->
+        <controls:FileSystemTreeView Grid.Row="1" x:Name="fileTreeView" Margin="0,5,0,5" Grid.ColumnSpan="2"/>
 
-        <!-- Opções -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,5">
-            <CheckBox x:Name="chkIncludeSubfolders" Content="Incluir subpastas" IsChecked="True" Margin="5,0"/>
-            <CheckBox x:Name="chkPreserveStructure" Content="Manter estrutura" IsChecked="True" Margin="5,0"/>
-        </StackPanel>
-
-        <!-- Lista de arquivos -->
-        <ListView x:Name="lstFiles" Grid.Row="3" Margin="0,5">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Arquivo" Width="300" DisplayMemberBinding="{Binding Name}"/>
-                    <GridViewColumn Header="Caminho" Width="350" DisplayMemberBinding="{Binding Path}"/>
-                </GridView>
-            </ListView.View>
-        </ListView>
-
-        <!-- Botões -->
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button x:Name="btnScan" Content="Escanear" Width="100" Margin="5,0" Click="BtnScan_Click"/>
-            <Button x:Name="btnExport" Content="Exportar" Width="100" Margin="5,0" Click="BtnExport_Click"/>
+        <!-- Linha 3: Botões de ação -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0" Grid.Column="1">
+            <Button x:Name="btnPreview" Content="Visualizar Seleção" Width="120" Margin="5,0" Click="BtnPreview_Click"/>
+            <Button x:Name="btnExport" Content="Exportar Selecionados" Width="140" Margin="5,0" Click="BtnExport_Click"/>
         </StackPanel>
     </Grid>
 </Window>

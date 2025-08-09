@@ -8,6 +8,8 @@
         <!-- Menu superior -->
         <Menu DockPanel.Dock="Top" Background="#FF2D2D30" Foreground="White" FontWeight="Bold" FontSize="14">
             <MenuItem Header="_Arquivo">
+                <MenuItem Header="Selecionar Tipo de Projeto" Click="MenuSelecionarTipoProjeto_Click" />
+                <Separator/>
                 <MenuItem Header="Visualizar Estrutura" Click="MenuVisualizarEstrutura_Click" />
                 <MenuItem Header="Exportar Código" Click="MenuExportarCodigo_Click" />
                 <Separator/>

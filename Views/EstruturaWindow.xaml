@@ -16,19 +16,16 @@
 
         <!-- Linha 1: Caminho e botão Buscar -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Top" Grid.ColumnSpan="2">
-            <TextBox x:Name="txtFolderPath" Width="600" Height="25" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <TextBox x:Name="txtFolderPath" Width="500" Height="25" VerticalAlignment="Center" Margin="0,0,8,0" />
             <Button x:Name="btnBrowse" Content="Buscar..." Width="80" Click="BtnBrowse_Click"/>
         </StackPanel>
 
         <!-- Linha 2: Opções e botão Gerar -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Top" Grid.ColumnSpan="2" >
-            <CheckBox x:Name="chkIgnoreEmptyFolders" Content="Ignorar Pastas Vazias" VerticalAlignment="Center" 
-                      Checked="chkIgnoreEmptyFolders_Checked" Unchecked="chkIgnoreEmptyFolders_Unchecked"/>
-            <CheckBox x:Name="chkShowSystemFiles" Content="Mostrar Arquivos de Sistema" VerticalAlignment="Center" Margin="16,0,0,0"
-                      Checked="chkShowSystemFiles_Checked" Unchecked="chkShowSystemFiles_Unchecked"/>
-            <CheckBox x:Name="chkShowOnlyCodeFiles" Content="Mostrar Apenas Arquivos de Código" VerticalAlignment="Center" Margin="16,0,0,0"
-                      Checked="chkShowOnlyCodeFiles_Checked" Unchecked="chkShowOnlyCodeFiles_Unchecked"/>
-            <Button x:Name="btnGenerate" Content="Gerar Estrutura" Width="120" Margin="16,0,0,0" Click="BtnGenerate_Click"/>
+            <Button x:Name="btnSelectProjectType" Content="Selecionar Tipo de Projeto" Width="150" Margin="0,0,10,0" Click="BtnSelectProjectType_Click"/>
+            <TextBlock x:Name="txtCurrentProfile" Text="Perfil atual: Não selecionado" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <Button x:Name="btnGenerate" Content="Gerar Estrutura" Width="120" Click="BtnGenerate_Click"/>
+            <Button x:Name="btnDebug" Content="Depurar" Width="80" Margin="10,0,0,0" Click="BtnDebug_Click"/>
         </StackPanel>
 
         <!-- Linha 3: TextBox multiline para mostrar estrutura gerada -->

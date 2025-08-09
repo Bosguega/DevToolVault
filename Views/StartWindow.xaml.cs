@@ -26,6 +26,24 @@ namespace DevToolVault.Views
             }
         }
 
+        private void MenuSelecionarTipoProjeto_Click(object sender, RoutedEventArgs e)
+        {
+            var selectorWindow = new ProjectTypeSelectorWindow(_filterManager);
+            selectorWindow.Owner = this;
+
+            if (selectorWindow.ShowDialog() == true)
+            {
+                var selectedProfile = selectorWindow.SelectedProfile;
+                if (selectedProfile != null)
+                {
+                    _filterManager.SetActiveProfile(selectedProfile);
+                    UpdateFiltroAtual();
+                    MessageBox.Show($"Tipo de projeto definido como: {selectedProfile.Name}", "Sucesso",
+                                  MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+        }
+
         private void MenuVisualizarEstrutura_Click(object sender, RoutedEventArgs e)
         {
             var estruturaWindow = new EstruturaWindow(_filterManager);
@@ -36,7 +54,7 @@ namespace DevToolVault.Views
 
         private void MenuExportarCodigo_Click(object sender, RoutedEventArgs e)
         {
-            var exportarWindow = new ExportarCodigoWindow();
+            var exportarWindow = new ExportarCodigoWindow(_filterManager);
             exportarWindow.Owner = this;
             exportarWindow.Show();
         }

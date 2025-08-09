@@ -1,152 +1,234 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using DevToolVault.Controls;
+using DevToolVault.Filters;
+using DevToolVault.Models;
 using Ookii.Dialogs.Wpf;
 
 namespace DevToolVault.Views
 {
     public partial class ExportarCodigoWindow : Window
     {
-        // Extensões de arquivo que consideramos como código
-        private readonly string[] codeExtensions = {
-            ".cs", ".xaml", ".xml", ".json", ".config",
-            ".cshtml", ".js", ".html", ".css", ".ts",
-            ".vb", ".cpp", ".h", ".py", ".java"
-        };
+        private bool isProcessing = false;
+        private readonly FileFilterManager _filterManager;
+        private string _projectRoot;
 
-        private List<FileInfo> _projectFiles = new List<FileInfo>();
-
-        public ExportarCodigoWindow()
+        public ExportarCodigoWindow(FileFilterManager filterManager = null)
         {
             InitializeComponent();
+
+            // Inicializa o gerenciador de filtros
+            _filterManager = filterManager ?? new FileFilterManager();
+
+            // Se não há perfil ativo ou é o perfil genérico, pede para selecionar
+            var activeProfile = _filterManager.GetActiveProfile();
+            if (activeProfile == null || activeProfile.Name == "Default")
+            {
+                var selectorWindow = new ProjectTypeSelectorWindow(_filterManager);
+                selectorWindow.Owner = this;
+
+                if (selectorWindow.ShowDialog() == true)
+                {
+                    activeProfile = selectorWindow.SelectedProfile;
+                    _filterManager.SetActiveProfile(activeProfile);
+                }
+                else
+                {
+                    // Se o usuário cancelou, usa o perfil padrão
+                    activeProfile = _filterManager.GetProfiles().FirstOrDefault(p => p.Name == "Flutter") ??
+                                   _filterManager.GetProfiles().FirstOrDefault();
+                    _filterManager.SetActiveProfile(activeProfile);
+                }
+            }
+
+            // Configura a UI com base no perfil ativo
+            SetupUIFromProfile(activeProfile);
+            txtCurrentProfile.Text = $"Perfil atual: {activeProfile.Name}";
         }
 
-        private void BtnBrowseProject_Click(object sender, RoutedEventArgs e)
+        private void SetupUIFromProfile(FilterProfile profile)
+        {
+            txtCurrentProfile.Text = $"Perfil atual: {profile.Name}";
+        }
+
+        private void BtnSelectProjectType_Click(object sender, RoutedEventArgs e)
+        {
+            var selectorWindow = new ProjectTypeSelectorWindow(_filterManager);
+            selectorWindow.Owner = this;
+
+            if (selectorWindow.ShowDialog() == true)
+            {
+                var selectedProfile = selectorWindow.SelectedProfile;
+                if (selectedProfile != null)
+                {
+                    _filterManager.SetActiveProfile(selectedProfile);
+                    SetupUIFromProfile(selectedProfile);
+                    txtCurrentProfile.Text = $"Perfil atual: {selectedProfile.Name}";
+
+                    // Recarrega a árvore se já tiver um caminho
+                    if (!string.IsNullOrWhiteSpace(txtFolderPath.Text))
+                    {
+                        fileTreeView.LoadDirectory(txtFolderPath.Text, _filterManager);
+                    }
+                }
+            }
+        }
+
+        private void BtnBrowse_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new VistaFolderBrowserDialog();
             if (dialog.ShowDialog(this) == true)
             {
-                txtProjectPath.Text = dialog.SelectedPath;
-            }
-        }
-
-        private void BtnBrowseOutput_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new VistaFolderBrowserDialog();
-            if (dialog.ShowDialog(this) == true)
-            {
-                txtOutputPath.Text = dialog.SelectedPath;
-            }
-        }
-
-        private async void BtnScan_Click(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(txtProjectPath.Text) || !Directory.Exists(txtProjectPath.Text))
-            {
-                MessageBox.Show("Selecione uma pasta de projeto válida.", "Erro", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            btnScan.IsEnabled = false;
-            lstFiles.Items.Clear();
-            _projectFiles.Clear();
-
-            try
-            {
-                await Task.Run(() => ScanProjectFiles());
-                lstFiles.ItemsSource = _projectFiles.Select(f => new { f.Name, Path = f.DirectoryName });
-                MessageBox.Show($"Encontrados {_projectFiles.Count} arquivos de código.", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Erro ao escanear: {ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            finally
-            {
-                btnScan.IsEnabled = true;
-            }
-        }
-
-        private void ScanProjectFiles()
-        {
-            var searchOption = chkIncludeSubfolders.IsChecked == true ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-            var files = Directory.GetFiles(txtProjectPath.Text, "*.*", searchOption)
-                                .Where(f => codeExtensions.Contains(Path.GetExtension(f).ToLower()))
-                                .Select(f => new FileInfo(f));
-
-            foreach (var file in files)
-            {
-                _projectFiles.Add(file);
+                txtFolderPath.Text = dialog.SelectedPath;
+                _projectRoot = txtFolderPath.Text;
+                fileTreeView.LoadDirectory(txtFolderPath.Text, _filterManager);
             }
         }
 
         private async void BtnExport_Click(object sender, RoutedEventArgs e)
         {
-            if (_projectFiles.Count == 0)
+            await ExportSelectedFilesAsync();
+        }
+
+        private async Task ExportSelectedFilesAsync()
+        {
+            var selectedItems = fileTreeView.GetSelectedItems();
+
+            if (!selectedItems.Any())
             {
-                MessageBox.Show("Nenhum arquivo para exportar. Execute a varredura primeiro.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Selecione pelo menos um arquivo para exportar.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(txtOutputPath.Text))
-            {
-                MessageBox.Show("Selecione uma pasta de destino.", "Erro", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            isProcessing = true;
+            SetControlsEnabled(false);
 
-            btnExport.IsEnabled = false;
             try
             {
-                await Task.Run(() => ExportFiles());
-                MessageBox.Show("Exportação concluída com sucesso!", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
+                var exportContent = new StringBuilder();
+
+                foreach (var item in selectedItems)
+                {
+                    try
+                    {
+                        // Adiciona o cabeçalho
+                        exportContent.AppendLine($"// Caminho: {item.RelativePath}");
+                        exportContent.AppendLine($"// Arquivo: {item.Name}");
+                        exportContent.AppendLine("//");
+
+                        // Lê o conteúdo do arquivo
+                        string content = File.ReadAllText(item.FullName);
+                        exportContent.AppendLine(content);
+
+                        // Adiciona um separador
+                        exportContent.AppendLine();
+                        exportContent.AppendLine("=".Repeat(80));
+                        exportContent.AppendLine();
+                    }
+                    catch (Exception ex)
+                    {
+                        exportContent.AppendLine($"// Erro ao ler arquivo {item.RelativePath}: {ex.Message}");
+                        exportContent.AppendLine("=".Repeat(80));
+                        exportContent.AppendLine();
+                    }
+                }
+
+                // Salva o arquivo
+                var dlg = new Microsoft.Win32.SaveFileDialog
+                {
+                    Filter = "Arquivo de Texto (*.txt)|*.txt",
+                    FileName = "codigo_selecionado.txt"
+                };
+
+                if (dlg.ShowDialog(this) == true)
+                {
+                    File.WriteAllText(dlg.FileName, exportContent.ToString());
+                    MessageBox.Show($"Exportação concluída! {selectedItems.Count} arquivos exportados.",
+                                  "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erro durante exportação: {ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Erro durante a exportação: {ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
-                btnExport.IsEnabled = true;
+                isProcessing = false;
+                SetControlsEnabled(true);
             }
         }
 
-        private void ExportFiles()
+        private void BtnPreview_Click(object sender, RoutedEventArgs e)
         {
-            foreach (var file in _projectFiles)
+            var selectedItems = fileTreeView.GetSelectedItems();
+
+            if (!selectedItems.Any())
             {
-                try
-                {
-                    // Calcula o caminho relativo do arquivo
-                    string relativePath = file.FullName.Substring(txtProjectPath.Text.Length).TrimStart(Path.DirectorySeparatorChar);
-
-                    // Define o caminho de saída
-                    string outputPath;
-                    if (chkPreserveStructure.IsChecked == true)
-                    {
-                        // Mantém a estrutura de diretórios
-                        outputPath = Path.Combine(txtOutputPath.Text, relativePath);
-                    }
-                    else
-                    {
-                        // Salva todos na pasta raiz de destino
-                        outputPath = Path.Combine(txtOutputPath.Text, file.Name);
-                    }
-
-                    // Garante que o diretório de destino existe
-                    Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
-
-                    // Salva o conteúdo do arquivo com extensão .txt
-                    File.WriteAllText(Path.ChangeExtension(outputPath, ".txt"), File.ReadAllText(file.FullName));
-                }
-                catch (Exception ex)
-                {
-                    // Log de erros específicos por arquivo
-                    Console.WriteLine($"Erro ao exportar {file.Name}: {ex.Message}");
-                }
+                MessageBox.Show("Selecione pelo menos um arquivo para visualizar.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
+
+            var previewWindow = new Window
+            {
+                Title = "Pré-visualização da Seleção",
+                Width = 700,
+                Height = 500,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+
+            var textBox = new TextBox
+            {
+                IsReadOnly = true,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                FontFamily = new System.Windows.Media.FontFamily("Consolas"),
+                Padding = new Thickness(10)
+            };
+
+            var previewContent = new StringBuilder();
+            previewContent.AppendLine($"Arquivos selecionados ({selectedItems.Count}):");
+            previewContent.AppendLine("=".Repeat(50));
+            previewContent.AppendLine();
+
+            foreach (var item in selectedItems.OrderBy(i => i.RelativePath))
+            {
+                previewContent.AppendLine($"- {item.RelativePath}");
+            }
+
+            textBox.Text = previewContent.ToString();
+            previewWindow.Content = textBox;
+            previewWindow.Owner = this;
+            previewWindow.Show();
         }
+
+        private void SetControlsEnabled(bool enabled)
+        {
+            btnExport.IsEnabled = enabled;
+            btnBrowse.IsEnabled = enabled;
+            btnSelectProjectType.IsEnabled = enabled;
+            btnPreview.IsEnabled = enabled;
+        }
+    }
+}
+
+// Extensão para repetir strings
+public static class StringExtensions
+{
+    public static string Repeat(this string input, int count)
+    {
+        if (string.IsNullOrEmpty(input))
+            return string.Empty;
+
+        var builder = new StringBuilder(input.Length * count);
+        for (int i = 0; i < count; i++)
+        {
+            builder.Append(input);
+        }
+        return builder.ToString();
     }
 }

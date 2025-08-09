@@ -27,7 +27,8 @@ namespace DevToolVault.Models
 
         private void AppendDirectoryContents(DirectoryInfo dir, StringBuilder sb, string indent, TreeOptions options)
         {
-            if (_fileFilter.ShouldIgnore(dir.FullName, true))
+            // Verifica se o diretório deve ser ignorado
+            if (_fileFilter.ShouldIgnoreDebug(dir.FullName, true))
                 return;
 
             _statistics.TotalFolders++;
@@ -46,8 +47,9 @@ namespace DevToolVault.Models
                     return;
                 }
 
-                var visibleFiles = files.Where(f => !_fileFilter.ShouldIgnore(f.FullName, false)).ToArray();
-                var visibleSubDirs = subDirs.Where(d => !_fileFilter.ShouldIgnore(d.FullName, true)).ToArray();
+                // Filtra os arquivos e diretórios usando o FileFilter
+                var visibleFiles = files.Where(f => !_fileFilter.ShouldIgnoreDebug(f.FullName, false)).ToArray();
+                var visibleSubDirs = subDirs.Where(d => !_fileFilter.ShouldIgnoreDebug(d.FullName, true)).ToArray();
 
                 int totalItems = visibleFiles.Length + visibleSubDirs.Length;
                 if (totalItems == 0 && options.IgnoreEmptyFolders)

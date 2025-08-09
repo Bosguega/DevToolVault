@@ -1,11 +1,12 @@
-﻿using Ookii.Dialogs.Wpf;
-using System;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using DevToolVault.Models;
 using DevToolVault.Filters;
+using DevToolVault.Models;
+using Ookii.Dialogs.Wpf;
 
 namespace DevToolVault.Views
 {
@@ -23,8 +24,28 @@ namespace DevToolVault.Views
             // Inicializa o gerenciador de filtros
             _filterManager = filterManager ?? new FileFilterManager();
 
-            // Inicializa as dependências com o perfil ativo
+            // Se não há perfil ativo ou é o perfil genérico, pede para selecionar
             var activeProfile = _filterManager.GetActiveProfile();
+            if (activeProfile == null || activeProfile.Name == "Default")
+            {
+                var selectorWindow = new ProjectTypeSelectorWindow(_filterManager);
+                selectorWindow.Owner = this;
+
+                if (selectorWindow.ShowDialog() == true)
+                {
+                    activeProfile = selectorWindow.SelectedProfile;
+                    _filterManager.SetActiveProfile(activeProfile);
+                }
+                else
+                {
+                    // Se o usuário cancelou, usa o perfil padrão
+                    activeProfile = _filterManager.GetProfiles().FirstOrDefault(p => p.Name == "Flutter") ??
+                                   _filterManager.GetProfiles().FirstOrDefault();
+                    _filterManager.SetActiveProfile(activeProfile);
+                }
+            }
+
+            // Inicializa as dependências com o perfil ativo
             var options = TreeOptions.FromFilterProfile(activeProfile);
             var fileFilter = new FileFilter(options);
             _statistics = new FileStatistics();
@@ -32,13 +53,36 @@ namespace DevToolVault.Views
 
             // Configura a UI com base no perfil ativo
             SetupUIFromProfile(activeProfile);
+            txtCurrentProfile.Text = $"Perfil atual: {activeProfile.Name}";
         }
 
         private void SetupUIFromProfile(FilterProfile profile)
         {
-            chkIgnoreEmptyFolders.IsChecked = profile.IgnoreEmptyFolders;
-            chkShowSystemFiles.IsChecked = profile.ShowSystemFiles;
-            chkShowOnlyCodeFiles.IsChecked = profile.ShowOnlyCodeFiles;
+            // Como agora estamos usando perfis específicos, não mostramos as opções individuais
+            txtCurrentProfile.Text = $"Perfil atual: {profile.Name}";
+        }
+
+        private void BtnSelectProjectType_Click(object sender, RoutedEventArgs e)
+        {
+            var selectorWindow = new ProjectTypeSelectorWindow(_filterManager);
+            selectorWindow.Owner = this;
+
+            if (selectorWindow.ShowDialog() == true)
+            {
+                var selectedProfile = selectorWindow.SelectedProfile;
+                if (selectedProfile != null)
+                {
+                    _filterManager.SetActiveProfile(selectedProfile);
+                    SetupUIFromProfile(selectedProfile);
+                    txtCurrentProfile.Text = $"Perfil atual: {selectedProfile.Name}";
+
+                    // Se já tiver um caminho selecionado, gera a estrutura automaticamente
+                    if (!string.IsNullOrWhiteSpace(txtFolderPath.Text))
+                    {
+                        _ = GerarEstruturaAsync();
+                    }
+                }
+            }
         }
 
         private void BtnBrowse_Click(object sender, RoutedEventArgs e)
@@ -76,11 +120,11 @@ namespace DevToolVault.Views
 
             try
             {
-                // Atualiza o perfil ativo com base nas opções da UI
+                // Obtém o perfil ativo
                 var activeProfile = _filterManager.GetActiveProfile();
-                activeProfile.IgnoreEmptyFolders = chkIgnoreEmptyFolders.IsChecked == true;
-                activeProfile.ShowSystemFiles = chkShowSystemFiles.IsChecked == true;
-                activeProfile.ShowOnlyCodeFiles = chkShowOnlyCodeFiles.IsChecked == true;
+
+                // Salva o perfil atualizado
+                _filterManager.SaveProfile(activeProfile);
 
                 var options = TreeOptions.FromFilterProfile(activeProfile);
 
@@ -111,11 +155,7 @@ namespace DevToolVault.Views
         {
             btnGenerate.IsEnabled = enabled;
             btnBrowse.IsEnabled = enabled;
-            chkIgnoreEmptyFolders.IsEnabled = enabled;
-            if (chkShowSystemFiles != null)
-                chkShowSystemFiles.IsEnabled = enabled;
-            if (chkShowOnlyCodeFiles != null)
-                chkShowOnlyCodeFiles.IsEnabled = enabled;
+            btnSelectProjectType.IsEnabled = enabled;
             btnCopy.IsEnabled = enabled;
             btnSave.IsEnabled = enabled;
         }
@@ -157,41 +197,56 @@ namespace DevToolVault.Views
             }
         }
 
-        // Eventos para os checkboxes
-        private void chkIgnoreEmptyFolders_Checked(object sender, RoutedEventArgs e)
+        private void BtnDebug_Click(object sender, RoutedEventArgs e)
         {
-            if (!string.IsNullOrWhiteSpace(txtFolderPath.Text))
-                _ = GerarEstruturaAsync();
-        }
+            if (string.IsNullOrWhiteSpace(txtFolderPath.Text) || !Directory.Exists(txtFolderPath.Text))
+            {
+                MessageBox.Show("Selecione uma pasta válida.", "Erro", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
-        private void chkIgnoreEmptyFolders_Unchecked(object sender, RoutedEventArgs e)
-        {
-            if (!string.IsNullOrWhiteSpace(txtFolderPath.Text))
-                _ = GerarEstruturaAsync();
-        }
+            // Cria uma janela para mostrar a saída de depuração
+            var debugWindow = new Window
+            {
+                Title = "Saída de Depuração",
+                Width = 600,
+                Height = 400,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
 
-        private void chkShowSystemFiles_Checked(object sender, RoutedEventArgs e)
-        {
-            if (!string.IsNullOrWhiteSpace(txtFolderPath.Text))
-                _ = GerarEstruturaAsync();
-        }
+            var textBox = new TextBox
+            {
+                IsReadOnly = true,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                FontFamily = new System.Windows.Media.FontFamily("Consolas"),
+                Text = "Iniciando depuração...\r\n\r\n"
+            };
 
-        private void chkShowSystemFiles_Unchecked(object sender, RoutedEventArgs e)
-        {
-            if (!string.IsNullOrWhiteSpace(txtFolderPath.Text))
-                _ = GerarEstruturaAsync();
-        }
+            debugWindow.Content = textBox;
 
-        private void chkShowOnlyCodeFiles_Checked(object sender, RoutedEventArgs e)
-        {
-            if (!string.IsNullOrWhiteSpace(txtFolderPath.Text))
-                _ = GerarEstruturaAsync();
-        }
+            // Redireciona a saída do console para o TextBox
+            var writer = new TextBoxStreamWriter(textBox);
+            Console.SetOut(writer);
 
-        private void chkShowOnlyCodeFiles_Unchecked(object sender, RoutedEventArgs e)
-        {
-            if (!string.IsNullOrWhiteSpace(txtFolderPath.Text))
-                _ = GerarEstruturaAsync();
+            // Obtém o perfil ativo
+            var activeProfile = _filterManager.GetActiveProfile();
+            var options = TreeOptions.FromFilterProfile(activeProfile);
+            var fileFilter = new FileFilter(options);
+
+            // Testa o filtro no diretório raiz
+            Console.WriteLine($"Testando filtro no diretório: {txtFolderPath.Text}");
+            fileFilter.ShouldIgnoreDebug(txtFolderPath.Text, true);
+
+            // Testa o filtro em cada subdiretório
+            var rootDir = new DirectoryInfo(txtFolderPath.Text);
+            foreach (var dir in rootDir.GetDirectories())
+            {
+                fileFilter.ShouldIgnoreDebug(dir.FullName, true);
+            }
+
+            debugWindow.Owner = this;
+            debugWindow.Show();
         }
     }
 }
