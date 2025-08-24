@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,7 @@ using System.Windows.Controls;
 using DevToolVault.Controls;
 using DevToolVault.Filters;
 using DevToolVault.Models;
+using DevToolVault.Services;
 using DevToolVault.Utils;
 using Ookii.Dialogs.Wpf;
 
@@ -18,6 +20,7 @@ namespace DevToolVault.Views
         private bool isProcessing = false;
         private readonly FileFilterManager _filterManager;
         private string _projectRoot;
+        private readonly ExportService _exportService = new ExportService();
 
         public ExportarCodigoWindow(FileFilterManager filterManager = null)
         {
@@ -38,19 +41,22 @@ namespace DevToolVault.Views
                 }
                 else
                 {
+                    // Fallback: tenta Flutter ou primeiro disponível
                     activeProfile = _filterManager.GetProfiles().FirstOrDefault(p => p.Name == "Flutter") ??
-                                   _filterManager.GetProfiles().FirstOrDefault();
-                    _filterManager.SetActiveProfile(activeProfile);
+                                    _filterManager.GetProfiles().FirstOrDefault();
+
+                    if (activeProfile != null)
+                        _filterManager.SetActiveProfile(activeProfile);
                 }
             }
 
             SetupUIFromProfile(activeProfile);
-            txtCurrentProfile.Text = $"Perfil atual: {activeProfile.Name}";
+            txtCurrentProfile.Text = $"Perfil atual: {activeProfile?.Name}";
         }
 
         private void SetupUIFromProfile(FilterProfile profile)
         {
-            txtCurrentProfile.Text = $"Perfil atual: {profile.Name}";
+            txtCurrentProfile.Text = $"Perfil atual: {profile?.Name}";
         }
 
         private void BtnSelectProjectType_Click(object sender, RoutedEventArgs e)
@@ -94,59 +100,56 @@ namespace DevToolVault.Views
         private async Task ExportSelectedFilesAsync()
         {
             var selectedItems = fileTreeView.GetSelectedItems();
-
             if (!selectedItems.Any())
             {
                 MessageBox.Show("Selecione pelo menos um arquivo para exportar.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
+            // Mapear ComboBox para formato
+            var format = cmbExportFormat.SelectedIndex switch
+            {
+                1 => ExportService.ExportFormat.Markdown,
+                2 => ExportService.ExportFormat.Pdf,
+                3 => ExportService.ExportFormat.Zip,
+                _ => ExportService.ExportFormat.Text
+            };
+
+            var filter = format switch
+            {
+                ExportService.ExportFormat.Markdown => "Arquivo Markdown (*.md)|*.md",
+                ExportService.ExportFormat.Pdf => "PDF (*.pdf)|*.pdf",
+                ExportService.ExportFormat.Zip => "Arquivo ZIP (*.zip)|*.zip",
+                _ => "Arquivo de Texto (*.txt)|*.txt"
+            };
+
+            var defaultName = format switch
+            {
+                ExportService.ExportFormat.Markdown => "codigo.md",
+                ExportService.ExportFormat.Pdf => "codigo.pdf",
+                ExportService.ExportFormat.Zip => "codigo.zip",
+                _ => "codigo.txt"
+            };
+
+            var dlg = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = filter,
+                FileName = defaultName
+            };
+
+            if (dlg.ShowDialog(this) != true) return;
+
             isProcessing = true;
             SetControlsEnabled(false);
 
             try
             {
-                var exportContent = new StringBuilder();
-
-                foreach (var item in selectedItems.OrderBy(i => i.RelativePath))
-                {
-                    try
-                    {
-                        exportContent.AppendLine($"// Caminho: {item.RelativePath}");
-                        exportContent.AppendLine($"// Arquivo: {item.Name}");
-                        exportContent.AppendLine("//");
-
-                        string content = File.ReadAllText(item.FullName);
-                        exportContent.AppendLine(content);
-
-                        exportContent.AppendLine();
-                        exportContent.AppendLine("=".Repeat(80));
-                        exportContent.AppendLine();
-                    }
-                    catch (Exception ex)
-                    {
-                        exportContent.AppendLine($"// Erro ao ler arquivo {item.RelativePath}: {ex.Message}");
-                        exportContent.AppendLine("=".Repeat(80));
-                        exportContent.AppendLine();
-                    }
-                }
-
-                var dlg = new Microsoft.Win32.SaveFileDialog
-                {
-                    Filter = "Arquivo de Texto (*.txt)|*.txt",
-                    FileName = "codigo_selecionado.txt"
-                };
-
-                if (dlg.ShowDialog(this) == true)
-                {
-                    File.WriteAllText(dlg.FileName, exportContent.ToString(), Encoding.UTF8);
-                    MessageBox.Show($"Exportação concluída! {selectedItems.Count} arquivos exportados.",
-                                  "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
+                await _exportService.ExportAsync(selectedItems, dlg.FileName, format);
+                MessageBox.Show($"Exportação concluída!\n{selectedItems.Count} arquivos salvos.", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erro durante a exportação: {ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Erro ao exportar: {ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
@@ -158,7 +161,6 @@ namespace DevToolVault.Views
         private void BtnPreview_Click(object sender, RoutedEventArgs e)
         {
             var selectedItems = fileTreeView.GetSelectedItems();
-
             if (!selectedItems.Any())
             {
                 MessageBox.Show("Selecione pelo menos um arquivo para visualizar.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -200,10 +202,11 @@ namespace DevToolVault.Views
 
         private void SetControlsEnabled(bool enabled)
         {
-            btnExport.IsEnabled = enabled;
+            btnExport.IsEnabled = enabled && !isProcessing;
             btnBrowse.IsEnabled = enabled;
             btnSelectProjectType.IsEnabled = enabled;
             btnPreview.IsEnabled = enabled;
+            cmbExportFormat.IsEnabled = enabled;
         }
     }
 }
